@@ -40,7 +40,7 @@ public class ItemServiceImpl implements ItemService {
                 item.getDescription(),
                 Boolean.TRUE.equals(item.getAvailable()),
                 owner,
-                null
+                item.getRequest()
         );
 
         items.put(saved.getId(), saved);
