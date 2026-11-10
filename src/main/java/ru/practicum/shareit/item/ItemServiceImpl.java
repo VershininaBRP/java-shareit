@@ -11,15 +11,12 @@ import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
-import ru.practicum.shareit.comment.Comment;
 import ru.practicum.shareit.comment.CommentService;
 import ru.practicum.shareit.comment.CommentMapper;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 import java.util.List;
 
