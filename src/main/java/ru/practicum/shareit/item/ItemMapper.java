@@ -4,6 +4,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
 
+import java.util.List;
+
 public final class ItemMapper {
 
     private ItemMapper() {
@@ -15,7 +17,10 @@ public final class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getRequest() == null ? null : item.getRequest().getId()
+                item.getRequest() == null ? null : item.getRequest().getId(),
+                null,
+                null,
+                List.of()
         );
     }
 

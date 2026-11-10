@@ -42,24 +42,18 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ItemDto getById(@PathVariable Long itemId) {
-        return ItemMapper.toItemDto(itemService.getById(itemId));
+        return itemService.getByIdDto(itemId);
     }
 
     @GetMapping
     public List<ItemDto> getByOwner(@RequestHeader(USER_HEADER) Long userId) {
-        return itemService.getByOwner(userId)
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .toList();
+        return itemService.getByOwnerDto(userId);
     }
 
     @GetMapping("/search")
     public List<ItemDto> search(
             @RequestParam(defaultValue = "") String text
     ) {
-        return itemService.search(text)
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .toList();
+        return itemService.searchDto(text);
     }
 }
