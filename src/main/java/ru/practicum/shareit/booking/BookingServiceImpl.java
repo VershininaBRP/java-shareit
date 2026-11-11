@@ -1,9 +1,7 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
@@ -78,8 +76,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findBooking(bookingId);
 
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Подтвердить бронирование может только владелец вещи");
+            throw new NotFoundException("Бронирование с id=" + bookingId + " не найдено");
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {
@@ -103,8 +100,7 @@ public class BookingServiceImpl implements BookingService {
         Long bookerId = booking.getBooker().getId();
 
         if (!ownerId.equals(userId) && !bookerId.equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Просматривать бронирование могут только его владелец и автор");
+            throw new NotFoundException("Бронирование с id=" + bookingId + " не найдено");
         }
 
         return booking;
@@ -113,13 +109,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getByBooker(Long bookerId) {
         userService.getById(bookerId);
-        return bookingRepository.findByBookerId(bookerId);
+        return bookingRepository.findByBookerIdOrderByStartDesc(bookerId);
     }
 
     @Override
     public List<Booking> getByOwner(Long ownerId) {
         userService.getById(ownerId);
-        return bookingRepository.findByItemOwnerId(ownerId);
+        return bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId);
     }
 
     private Booking findBooking(Long bookingId) {

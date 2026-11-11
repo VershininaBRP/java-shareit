@@ -8,9 +8,9 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    List<Booking> findByBookerId(Long bookerId);
+    List<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
 
-    List<Booking> findByItemOwnerId(Long ownerId);
+    List<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
 
     boolean existsByItemIdAndBookerIdAndStatusAndEndBefore(
             Long itemId,

@@ -2,25 +2,27 @@ package ru.practicum.shareit.item;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.booking.dto.BookingMapper;
-import ru.practicum.shareit.comment.CommentService;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.comment.CommentMapper;
+import ru.practicum.shareit.comment.CommentService;
 import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import java.time.LocalDateTime;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
@@ -39,6 +41,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public Item create(Long ownerId, Item item) {
         User owner = userService.getById(ownerId);
 
@@ -63,6 +66,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public Item update(Long ownerId, Long itemId, Item patch) {
         Item current = getStored(itemId);
 
@@ -156,18 +160,21 @@ public class ItemServiceImpl implements ItemService {
                     .orElse(null);
 
             dto.setLastBooking(lastBooking == null
-                    ? null : BookingMapper.toBookingDto(lastBooking));
+                    ? null
+                    : new BookingShortDto(lastBooking.getId(), lastBooking.getBooker().getId()));
 
             dto.setNextBooking(nextBooking == null
-                    ? null : BookingMapper.toBookingDto(nextBooking));
+                    ? null
+                    : new BookingShortDto(nextBooking.getId(), nextBooking.getBooker().getId()));
         }
 
         return dto;
     }
 
     @Override
-    public ItemDto getByIdDto(Long itemId) {
-        return enrichItem(getStored(itemId), false);
+    public ItemDto getByIdDto(Long itemId, Long userId) {
+        Item item = getStored(itemId);
+        return enrichItem(item, item.getOwner().getId().equals(userId));
     }
 
     @Override

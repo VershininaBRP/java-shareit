@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.comment.dto.CommentDto;
 
 import java.util.List;
@@ -26,9 +26,9 @@ public class ItemDto {
 
     private Long requestId;
 
-    private BookingDto lastBooking;
+    private BookingShortDto lastBooking;
 
-    private BookingDto nextBooking;
+    private BookingShortDto nextBooking;
 
     private List<CommentDto> comments;
 }

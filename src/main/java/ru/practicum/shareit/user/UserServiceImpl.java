@@ -2,6 +2,7 @@ package ru.practicum.shareit.user;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.exception.ValidationException;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -18,6 +20,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User create(User user) {
         validateEmail(user.getEmail(), null);
 
@@ -27,6 +30,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User update(Long userId, User patch) {
         User current = findUser(userId);
 
@@ -55,6 +59,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void delete(Long userId) {
         User user = findUser(userId);
         userRepository.delete(user);
