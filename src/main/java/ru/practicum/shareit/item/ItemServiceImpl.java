@@ -17,6 +17,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,16 +31,20 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentService commentService;
+    private final ItemRequestRepository itemRequestRepository;
 
     public ItemServiceImpl(ItemRepository itemRepository,
                            UserService userService,
                            BookingRepository bookingRepository,
-                           CommentService commentService) {
+                           CommentService commentService,
+                           ItemRequestRepository itemRequestRepository) {
         this.itemRepository = itemRepository;
         this.userService = userService;
         this.bookingRepository = bookingRepository;
         this.commentService = commentService;
+        this.itemRequestRepository = itemRequestRepository;
     }
+
 
     @Override
     @Transactional
@@ -53,17 +59,29 @@ public class ItemServiceImpl implements ItemService {
             );
         }
 
+        ItemRequest request = null;
+
+        if (item.getRequest() != null) {
+            Long requestId = item.getRequest().getId();
+
+            request = itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new NotFoundException(
+                            "Запрос с id=" + requestId + " не найден"
+                    ));
+        }
+
         Item saved = new Item(
                 null,
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
                 owner,
-                item.getRequest()
+                request
         );
 
         return itemRepository.save(saved);
     }
+
 
     @Override
     @Transactional
