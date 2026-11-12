@@ -2,30 +2,49 @@ package ru.practicum.shareit.item;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.comment.CommentMapper;
+import ru.practicum.shareit.comment.CommentService;
+import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
-    private final Map<Long, Item> items = new LinkedHashMap<>();
-    private final AtomicLong ids = new AtomicLong(1);
+    private final ItemRepository itemRepository;
     private final UserService userService;
+    private final BookingRepository bookingRepository;
+    private final CommentService commentService;
 
-    public ItemServiceImpl(UserService userService) {
+    public ItemServiceImpl(ItemRepository itemRepository,
+                           UserService userService,
+                           BookingRepository bookingRepository,
+                           CommentService commentService) {
+        this.itemRepository = itemRepository;
         this.userService = userService;
+        this.bookingRepository = bookingRepository;
+        this.commentService = commentService;
     }
 
     @Override
+    @Transactional
     public Item create(Long ownerId, Item item) {
         User owner = userService.getById(ownerId);
+
         validateItem(item.getName(), item.getDescription());
 
         if (item.getAvailable() == null) {
@@ -35,19 +54,19 @@ public class ItemServiceImpl implements ItemService {
         }
 
         Item saved = new Item(
-                ids.getAndIncrement(),
+                null,
                 item.getName(),
                 item.getDescription(),
-                Boolean.TRUE.equals(item.getAvailable()),
+                item.getAvailable(),
                 owner,
                 item.getRequest()
         );
 
-        items.put(saved.getId(), saved);
-        return copy(saved);
+        return itemRepository.save(saved);
     }
 
     @Override
+    @Transactional
     public Item update(Long ownerId, Long itemId, Item patch) {
         Item current = getStored(itemId);
 
@@ -66,39 +85,25 @@ public class ItemServiceImpl implements ItemService {
 
         validateItem(name, description);
 
-        boolean available = patch.getAvailable() == null
-                ? Boolean.TRUE.equals(current.getAvailable())
-                : patch.getAvailable();
+        Boolean available = patch.getAvailable() == null
+                ? current.getAvailable() : patch.getAvailable();
 
-        Item updated = new Item(
-                itemId,
-                name,
-                description,
-                available,
-                current.getOwner(),
-                current.getRequest()
-        );
+        current.setName(name);
+        current.setDescription(description);
+        current.setAvailable(available);
 
-        items.put(itemId, updated);
-        return copy(updated);
+        return itemRepository.save(current);
     }
 
     @Override
     public Item getById(Long itemId) {
-        return copy(getStored(itemId));
+        return getStored(itemId);
     }
 
     @Override
     public List<Item> getByOwner(Long ownerId) {
         userService.getById(ownerId);
-
-        List<Item> result = new ArrayList<>();
-
-        items.values().stream()
-                .filter(i -> i.getOwner().getId().equals(ownerId))
-                .forEach(i -> result.add(copy(i)));
-
-        return result;
+        return itemRepository.findByOwnerId(ownerId);
     }
 
     @Override
@@ -107,30 +112,14 @@ public class ItemServiceImpl implements ItemService {
             return List.of();
         }
 
-        String query = text.toLowerCase(Locale.ROOT);
-        List<Item> result = new ArrayList<>();
-
-        items.values().stream()
-                .filter(i -> Boolean.TRUE.equals(i.getAvailable()))
-                .filter(i ->
-                        i.getName().toLowerCase(Locale.ROOT).contains(query)
-                                || i.getDescription()
-                                .toLowerCase(Locale.ROOT).contains(query))
-                .forEach(i -> result.add(copy(i)));
-
-        return result;
+        return itemRepository.searchAvailableItems(text.trim());
     }
 
     private Item getStored(Long id) {
-        Item item = items.get(id);
-
-        if (item == null) {
-            throw new NotFoundException(
-                    "Вещь с идентификатором " + id + " не найдена"
-            );
-        }
-
-        return item;
+        return itemRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        "Вещь с идентификатором " + id + " не найдена"
+                ));
     }
 
     private void validateItem(String name, String description) {
@@ -147,14 +136,64 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private Item copy(Item i) {
-        return new Item(
-                i.getId(),
-                i.getName(),
-                i.getDescription(),
-                i.getAvailable(),
-                i.getOwner(),
-                i.getRequest()
-        );
+    private ItemDto enrichItem(Item item, boolean isOwner) {
+        ItemDto dto = ItemMapper.toItemDto(item);
+
+        List<CommentDto> comments = commentService.getByItem(item.getId())
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .toList();
+
+        dto.setComments(comments);
+
+        if (isOwner) {
+            LocalDateTime now = LocalDateTime.now();
+
+            Booking lastBooking = bookingRepository
+                    .findFirstByItemIdAndStatusAndEndBeforeOrderByEndDesc(
+                            item.getId(), BookingStatus.APPROVED, now)
+                    .orElse(null);
+
+            Booking nextBooking = bookingRepository
+                    .findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
+                            item.getId(), BookingStatus.APPROVED, now)
+                    .orElse(null);
+
+            dto.setLastBooking(lastBooking == null
+                    ? null
+                    : new BookingShortDto(lastBooking.getId(), lastBooking.getBooker().getId()));
+
+            dto.setNextBooking(nextBooking == null
+                    ? null
+                    : new BookingShortDto(nextBooking.getId(), nextBooking.getBooker().getId()));
+        }
+
+        return dto;
+    }
+
+    @Override
+    public ItemDto getByIdDto(Long itemId, Long userId) {
+        Item item = getStored(itemId);
+        return enrichItem(item, item.getOwner().getId().equals(userId));
+    }
+
+    @Override
+    public List<ItemDto> getByOwnerDto(Long ownerId) {
+        userService.getById(ownerId);
+
+        return itemRepository.findByOwnerId(ownerId).stream()
+                .map(item -> enrichItem(item, true))
+                .toList();
+    }
+
+    @Override
+    public List<ItemDto> searchDto(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+
+        return itemRepository.searchAvailableItems(text.trim()).stream()
+                .map(item -> enrichItem(item, false))
+                .toList();
     }
 }
