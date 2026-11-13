@@ -33,15 +33,14 @@ class BookingDtoJsonTest {
 
     @Test
     void deserialize_shouldReadItemId() throws Exception {
+
         String json = """
-                {
-                    "id": 1,
-                    "start": "2026-11-14T10:00:00",
-                    "end": "2026-11-15T10:00:00",
-                    "itemId": 10,
-                    "status": "WAITING"
-                }
-                """;
+        {"id": 1,
+         "start": "2026-11-14T10:00:00",
+         "end": "2026-11-15T10:00:00",
+         "itemId": 10,
+         "status": "WAITING"}
+        """;
 
         BookingDto dto = objectMapper.readValue(json, BookingDto.class);
 
