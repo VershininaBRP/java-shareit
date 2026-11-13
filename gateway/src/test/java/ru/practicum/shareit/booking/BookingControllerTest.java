@@ -1,3 +1,4 @@
+
 package ru.practicum.shareit.booking;
 
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,10 @@ class BookingControllerTest {
         mockMvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "itemId": 10,
-                                    "start": "2030-01-10T10:00:00",
-                                    "end": "2030-01-11T10:00:00"
+                        .content("{" + """
+                                "itemId": 10,
+                                "start": "2030-01-10T10:00:00",
+                                "end": "2030-01-11T10:00:00"
                                 }
                                 """))
                 .andExpect(status().isCreated());

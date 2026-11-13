@@ -1,3 +1,4 @@
+
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Test;
@@ -33,9 +34,8 @@ class ItemRequestControllerTest {
         mockMvc.perform(post("/requests")
                         .header("X-Sharer-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "description": "Нужна дрель"
+                        .content("{" + """
+                                "description": "Нужна дрель"
                                 }
                                 """))
                 .andExpect(status().isCreated());
@@ -96,9 +96,8 @@ class ItemRequestControllerTest {
     void create_shouldReturnBadRequestWhenUserHeaderIsMissing() throws Exception {
         mockMvc.perform(post("/requests")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "description": "Нужна дрель"
+                        .content("{" + """
+                                "description": "Нужна дрель"
                                 }
                                 """))
                 .andExpect(status().isBadRequest());

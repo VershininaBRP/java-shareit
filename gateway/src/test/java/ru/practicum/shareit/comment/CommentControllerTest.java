@@ -1,3 +1,4 @@
+
 package ru.practicum.shareit.comment;
 
 import org.junit.jupiter.api.Test;
@@ -33,9 +34,8 @@ class CommentControllerTest {
         mockMvc.perform(post("/items/10/comment")
                         .header("X-Sharer-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "text": "Отличная вещь!"
+                        .content("{" + """
+                                "text": "Отличная вещь!"
                                 }
                                 """))
                 .andExpect(status().isCreated());

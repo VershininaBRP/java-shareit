@@ -1,3 +1,4 @@
+
 package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,10 @@ class ItemControllerTest {
         mockMvc.perform(post("/items")
                         .header("X-Sharer-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "name": "Дрель",
-                                    "description": "Электрическая дрель",
-                                    "available": true
+                        .content("{" + """
+                                "name": "Дрель",
+                                "description": "Электрическая дрель",
+                                "available": true
                                 }
                                 """))
                 .andExpect(status().isCreated());
@@ -52,10 +52,9 @@ class ItemControllerTest {
         mockMvc.perform(patch("/items/10")
                         .header("X-Sharer-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "name": "Новая дрель",
-                                    "description": "Обновлённое описание"
+                        .content("{" + """
+                                "name": "Новая дрель",
+                                "description": "Обновлённое описание"
                                 }
                                 """))
                 .andExpect(status().isOk());
