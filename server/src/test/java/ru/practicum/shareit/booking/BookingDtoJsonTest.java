@@ -33,6 +33,7 @@ class BookingDtoJsonTest {
 
     @Test
     void deserialize_shouldReadItemId() throws Exception {
+
         String json = "{" + """
         "id": 1,
         "start": "2026-11-14T10:00:00",
