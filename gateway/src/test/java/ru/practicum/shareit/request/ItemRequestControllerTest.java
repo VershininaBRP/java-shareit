@@ -9,9 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.client.ItemRequestClient;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,10 +34,10 @@ class ItemRequestControllerTest {
                         .header("X-Sharer-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "description": "Нужна дрель"
-                            }
-                            """))
+                                {
+                                    "description": "Нужна дрель"
+                                }
+                                """))
                 .andExpect(status().isCreated());
 
         verify(itemRequestClient).createRequest(eq(1L), any());
