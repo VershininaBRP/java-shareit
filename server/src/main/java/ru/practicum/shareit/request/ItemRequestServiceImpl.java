@@ -1,7 +1,6 @@
 package ru.practicum.shareit.request;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +63,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .toList();
     }
 
+
     @Override
     public List<ItemRequestDto> getAllRequests(Long requestorId, int from, int size) {
         userService.getById(requestorId);
@@ -74,18 +74,21 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             );
         }
 
-        int pageNumber = from / size;
-
         Page<ItemRequest> page = itemRequestRepository
                 .findAllByRequestorIdNotOrderByCreatedDesc(
                         requestorId,
-                        PageRequest.of(pageNumber, size, Sort.by(Sort.Direction.DESC, "created"))
+                        new OffsetBasedPageRequest(
+                                from,
+                                size,
+                                Sort.by(Sort.Direction.DESC, "created")
+                        )
                 );
 
         return page.getContent().stream()
                 .map(this::toDto)
                 .toList();
     }
+
 
     @Override
     public ItemRequestDto getRequestById(Long requestId) {

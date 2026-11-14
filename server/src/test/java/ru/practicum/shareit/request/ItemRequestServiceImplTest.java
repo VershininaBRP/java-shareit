@@ -109,10 +109,12 @@ class ItemRequestServiceImplTest {
         createStoredRequest(anotherUser, "Третий", LocalDateTime.now().minusDays(1));
 
         List<ItemRequestDto> result =
-                itemRequestService.getAllRequests(user.getId(), 1, 1);
+                itemRequestService.getAllRequests(user.getId(), 1, 2);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getDescription()).isEqualTo("Второй");
+        assertThat(result).hasSize(2);
+        assertThat(result)
+                .extracting(ItemRequestDto::getDescription)
+                .containsExactly("Второй", "Первый");
     }
 
     @Test
